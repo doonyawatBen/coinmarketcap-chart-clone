@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import {
   AxisLabelsLocation,
   GridMode,
@@ -22,12 +20,15 @@ import {
 } from "igniteui-react-charts";
 import { IChartTooltipProps, IgRect, Visibility } from "igniteui-react-core";
 import { useRef, useState } from "react";
+
 import { BITCOIN_DATA } from "./mock-data/bitcoin-data.ts";
+import CustomTooltip from "./components/CustomTooltip.tsx";
 import { Timeframe } from "./types.ts";
 import clsx from "clsx";
-import CustomTooltip from "./components/CustomTooltip.tsx";
-import tailwindConfig from "../tailwind.config.ts";
+import dayjs from "dayjs";
 import { formatYAxisValue } from "./utils.ts";
+import tailwindConfig from "../tailwind.config.ts";
+import utc from "dayjs/plugin/utc";
 
 IgrZoomSliderModule.register();
 IgrDataChartCoreModule.register();
@@ -170,6 +171,21 @@ function App() {
     };
   };
 
+  const renderChartToImage = (width: number, height: number, fileName: string) => {
+    let image = mainChartRef.current?.renderToImage(width, height);
+    saveBase64AsFile(image.src, `${fileName}.png`);
+  }
+
+  const saveBase64AsFile = (base64: any, fileName: string) => {
+    let link = document.createElement("a");
+    document.body.appendChild(link);
+    link.setAttribute("type", "hidden");
+    link.href = base64;
+    link.download = fileName;
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="w-[929px] h-[396px] mx-auto mt-[100px] px-10">
       <div className="flex flex-row items-center">
@@ -288,6 +304,7 @@ function App() {
           markerType={MarkerType.None}
         />
       </IgrDataChart>
+      <button type="button" onClick={()=>{renderChartToImage(845, 330, "fileA")}}>Save Image</button>
       <div className={`w-full h-[${MINIMAP_HEIGHT}] relative mt-4`}>
         <div className={`w-full h-[${MINIMAP_HEIGHT}] absolute top-0 left-0`}>
           <IgrDataChart
