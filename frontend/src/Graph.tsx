@@ -190,7 +190,6 @@ function Graph() {
       img.id = "image-render-graph"
       img.style.display = "block"
       img.style.margin = "auto"
-      img.style.cursor = "zoom-in"
       img.style.backgroundColor = "hsl(0, 0%, 100%)"
       img.style.transition = "background-color 300ms"
       img.src = base64

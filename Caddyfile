@@ -1,0 +1,4 @@
+{$PROXY_DEFAULT_URL} {
+    reverse_proxy   /*                    frontend-app:80
+    tls internal
+}

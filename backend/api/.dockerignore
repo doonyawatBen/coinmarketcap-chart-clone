@@ -1,0 +1,11 @@
+**/tmp
+/tmp
+**/.env*
+.env*
+**/build
+*.log
+*.swp
+*.swn
+*.swo
+gin-bin
+vendor

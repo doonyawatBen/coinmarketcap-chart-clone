@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  webservice:
+    container_name: webservice
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend/api/credential.json:/app/credential.json
+    ports:
+      - 9000:9000
+    environment:
+      - SERVICE_NAME=webservice
+    env_file:
+      - .env.dev
+
+  frontend-app:
+    container_name: frontend-app
+    ports:
+      - 5173:5173
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    stdin_open: true
+
+  proxy:
+    image: caddy:latest
+    container_name: proxy
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile
+    environment:
+      - PROXY_DEFAULT_URL=https://graph-dev.com
