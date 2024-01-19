@@ -270,12 +270,14 @@ function Graph() {
     const heightString = query.get("height") || ""
     const height = parseInt(heightString)
 
-    calculateZoomSliderWindowParam(startDate, endDate)
+    if (startDateString && endDateString && widthString && heightString) {
+      calculateZoomSliderWindowParam(startDate, endDate)
 
-    setTimeout(() => {
-      renderChartToImage(width, height)
-    }, 0);
-  },[])
+      setTimeout(() => {
+        renderChartToImage(width, height)
+      }, 0);
+    }
+  })
 
   return (
     <div className="w-[929px] h-[396px] mx-auto mt-[100px] px-10">
