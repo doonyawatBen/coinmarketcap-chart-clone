@@ -19,7 +19,7 @@ import {
   MarkerType,
 } from "igniteui-react-charts";
 import { IChartTooltipProps, IgRect, Visibility } from "igniteui-react-core";
-import { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { BITCOIN_DATA } from "./mock-data/bitcoin-data.ts";
 import CustomTooltip from "./components/CustomTooltip.tsx";
@@ -28,6 +28,7 @@ import clsx from "clsx";
 import dayjs from "dayjs";
 import { formatYAxisValue } from "./utils.ts";
 import tailwindConfig from "../tailwind.config.ts";
+import { useLocation } from "react-router-dom";
 import utc from "dayjs/plugin/utc";
 
 IgrZoomSliderModule.register();
@@ -42,10 +43,16 @@ dayjs.extend(utc);
 const MINIMAP_HEIGHT = "66px";
 const themeColors = tailwindConfig.theme.extend.colors;
 
+function useQuery() {
+  const { search } = useLocation();
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
 function Graph() {
   const [timeframe, setTimeframe] = useState<Timeframe>("all");
   const mainChartRef = useRef<IgrDataChart | null>(null);
   const zoomSliderRef = useRef<IgrZoomSlider | null>(null);
+  const query = useQuery();
 
   const handleMouseEnter = (
     _s: IgrSeriesViewer,
@@ -123,8 +130,6 @@ function Graph() {
       height: chartWindow.height,
     };
 
-    console.log(sliderWindow)
-
     updateMainChartZoom(zoom);
   };
 
@@ -173,11 +178,34 @@ function Graph() {
     };
   };
 
-  const renderChartToImage = (width: number, height: number) => {
-    const image = mainChartRef.current?.renderToImage(width, height);
-    console.log(image.src)
+  const saveBase64AsHTML = (base64: string) => {
+    document.body.style.margin = "0px"
+    document.body.style.height = "100%"
+    document.body.style.backgroundColor = "rgb(14, 14, 14)"
+
+    const imgCheck = document.getElementById('image-render-graph')
+    if (!imgCheck) {
+      const img = document.createElement("img");
+      document.body.appendChild(img);
+      img.id = "image-render-graph"
+      img.style.display = "block"
+      img.style.margin = "auto"
+      img.style.cursor = "zoom-in"
+      img.style.backgroundColor = "hsl(0, 0%, 100%)"
+      img.style.transition = "background-color 300ms"
+      img.src = base64
+    }
+
+    const root = document.getElementById('root')
+    root?.remove()
+    const rootScript = document.getElementById('root-script')
+    rootScript?.remove()
   }
 
+  const renderChartToImage = (width: number, height: number) => {
+    const image = mainChartRef.current?.renderToImage(width, height);
+    saveBase64AsHTML(image.src);
+  }
 
   const calculateZoomSliderWindowParam = (startDate: Date, endDate: Date) => {
     const mainChart = mainChartRef.current;
@@ -228,6 +256,26 @@ function Graph() {
 
     updateMainChartZoom(zoom);
   };
+
+  useEffect(() => {
+    const startDateString: string = query.get("startDate") || ""
+    const startDate = new Date(startDateString)
+
+    const endDateString: string = query.get("endDate") || ""
+    const endDate = new Date(endDateString)
+
+    const widthString = query.get("width") || ""
+    const width = parseInt(widthString)
+
+    const heightString = query.get("height") || ""
+    const height = parseInt(heightString)
+
+    calculateZoomSliderWindowParam(startDate, endDate)
+
+    setTimeout(() => {
+      renderChartToImage(width, height)
+    }, 0);
+  },[])
 
   return (
     <div className="w-[929px] h-[396px] mx-auto mt-[100px] px-10">
@@ -347,8 +395,6 @@ function Graph() {
           markerType={MarkerType.None}
         />
       </IgrDataChart>
-      <button type="button" onClick={() => { renderChartToImage(845, 330) }}>Save Image</button>
-      <button type="button" onClick={() => { calculateZoomSliderWindowParam(new Date("2023-05-12T00:00:00.000Z"), new Date("2023-05-19T00:00:00.000Z")) }}>Test</button>
       <div className={`w-full h-[${MINIMAP_HEIGHT}] relative mt-4`}>
         <div className={`w-full h-[${MINIMAP_HEIGHT}] absolute top-0 left-0`}>
           <IgrDataChart
